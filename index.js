@@ -2,28 +2,29 @@ const express = require("express");
 const { Pool } = require("pg");
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+app.use(express.json());
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: true
+    rejectUnauthorized: false
   }
 });
 
-app.get("/", async (req, res) => {
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando 🚀");
+});
+
+app.get("/db", async (req, res) => {
   try {
     const result = await pool.query("SELECT now()");
-    res.send(`
-      <h1>✅ Render + CockroachDB funcionando</h1>
-      <p>Hora BD:</p>
-      <pre>${result.rows[0].now}</pre>
-    `);
-  } catch (err) {
-    res.status(500).send(err.message);
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor activo en el puerto ${PORT}`);
 });
